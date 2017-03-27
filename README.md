@@ -21,10 +21,14 @@ Make the script executable with:
 
 `chmod +x updateDatabase.py`
 
-Edit the cron config file through your terminal:                                                               
+Edit the cron config file through your terminal:
+
 `$ crontab -e`                                                                  
+
 Add this line to the bottom of the file (must have return character after):                                                 
+
 `0 7 * * 1 python3 <PATH TO "cleanDocker.sh">`
+
 ##### Parameters (* = any):
 1. Minute (0 - 59)
 2. Hour (0 - 23)
