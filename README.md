@@ -17,7 +17,7 @@ Each time you run the script it will check your database directory and update it
 
 ### Setting the program up as a cron job
 
-Make your script executable with `chmod +x`
+Make the script executable with `chmod +x updateDatabase.py`
 
 Edit the cron config file through your terminal:                                                               
 `$ crontab -e`                                                                  
