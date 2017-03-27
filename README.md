@@ -17,6 +17,8 @@ Each time you run the script it will check your database directory and update it
 
 ### Setting the program up as a cron job
 
+Make your script executable with `chmod +x`
+
 Edit the cron config file through your terminal:                                                               
 `$ crontab -e`                                                                  
 Add this line to the bottom of the file (must have return character after):                                                 
