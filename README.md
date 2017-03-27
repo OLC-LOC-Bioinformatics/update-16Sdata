@@ -8,7 +8,7 @@ Clone the github repository. Edit the script and change line 4 to your preferred
 
 `dir = "DIRECTORY"`
 
-Change line 7 to your preffered directory to store the logs:
+Change line 7 to your preferred directory to store the logs:
 
 `logdir = "LOGDIRECTORY"`
 
