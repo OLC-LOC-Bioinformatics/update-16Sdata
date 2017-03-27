@@ -27,7 +27,7 @@ Edit the cron config file through your terminal:
 
 Add this line to the bottom of the file (must have return character after):                                                 
 
-`0 7 * * 1 python3 <PATH TO "cleanDocker.sh">`
+`0 7 * * 1 <PATH TO "updateDatabase.py">`
 
 ##### Parameters (* = any):
 1. Minute (0 - 59)
