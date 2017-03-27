@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import requests, subprocess, urllib.request, time, os, logging, sys
 
 #Directory to store all files in (eg. /home)
