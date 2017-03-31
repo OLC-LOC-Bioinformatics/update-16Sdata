@@ -6,8 +6,8 @@ CGREEN = '\033[92m'
 CEND = '\033[0m'
 
 #Constants
-defaultDir = os.getenv("HOME") + "/16S/"
-defaultLogdir = os.getenv("HOME") + "/16SLogs/"
+defaultDir = os.path.join(os.getenv("HOME"), '16S','')
+defaultLogdir = os.path.join(os.getenv("HOME"),'16SLogs','')
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-d","--directory", type=str,help="set the directory to store the database (default: ~/16S/")
@@ -17,21 +17,25 @@ args = parser.parse_args()
 dir = args.directory
 logdir = args.logdirectory
 try:
-    f = open("./config.ini", "r")
+    f = open("config.ini", "r")
     create = False
     f.close()
-    f = open("./config.ini", "r+")
-except:
+    f = open("config.ini", "r+")
+except FileNotFoundError:
     warnings.warn("No config file found, creating \"config.ini\"...")
-    f = open("./config.ini", "w")
-    create = True
+    try:
+        f = open("config.ini", "w")
+        create = True
+    except:
+        warnings.warn("Couldn't create config.ini")
+        exit()
 
 #Load config
 config = configparser.ConfigParser()
 
 if create == False: #Config file already exists
     try:
-        config.read("./config.ini")
+        config.read("config.ini")
         if dir is None:
             dir = config['Directories']['DatabaseDirectory']
         else:
@@ -83,12 +87,12 @@ if create == True:  # New file
 #Set up logging
 try:
     if not os.path.exists(logdir):
-        os.mkdir(logdir)
+        os.makedirs(logdir)
 except:
     print("Invalid directory " + logdir)
     exit()
 
-logdir += time.strftime("%Y-%m-%d_%H:%M:%S")
+logdir = os.path.join(logdir, time.strftime("%Y-%m-%d_%H:%M:%S") + ".txt")
 logging.basicConfig(filename=logdir, level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
@@ -118,11 +122,11 @@ def downloadDatabase(dir):
     i = 0
     while os.path.exists(folder):
         i += 1
-        folder = dir + time.strftime("%Y-%m-%d") + ":" + str(i)
+        folder = os.path.join(dir, time.strftime("%Y-%m-%d") + ":" + str(i))
     else:
         os.makedirs(folder)
-    urllib.request.urlretrieve("https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz", folder + "/16SMicrobial.tar.gz")
-    logging.info("Successfully retrieved file, stored in " + os.path.join(folder + "/16SMicrobial.tar.gz"))
+    urllib.request.urlretrieve("https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz", os.path.join(folder,"16SMicrobial.tar.gz"))
+    logging.info("Successfully retrieved file, stored in " + os.path.join(folder, "16SMicrobial.tar.gz"))
 
 logging.info("Checking if NCBI 16S database matches local database...")
 logging.info("Downloading current md5 hash from https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz.md5 ...")
@@ -147,7 +151,7 @@ else:
     logging.info("Getting local hash from folder " + dir + mostRecent + " ...")
 
     #Gets local hash
-    currentHash = subprocess.Popen(["md5sum", dir + mostRecent + "/16SMicrobial.tar.gz"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    currentHash = subprocess.Popen(["md5sum", os.path.join(dir, mostRecent, "16SMicrobial.tar.gz")], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
     for line in iter(currentHash.stdout.readline, b''):
         a = line.decode("utf-8")
     logging.info("Got local md5 hash...")
