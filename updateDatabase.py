@@ -1,128 +1,144 @@
 #!/usr/bin/env python3
-import requests, subprocess, urllib.request, time, os, logging, sys, argparse, configparser, warnings
+import requests
+import subprocess
+import urllib.request
+import time
+import os
+import logging
+import sys
+import argparse
+import configparser
+import warnings
 
-CRED = '\033[91m'
-CGREEN = '\033[92m'
-CEND = '\033[0m'
+C_RED = '\033[91m'
+C_GREEN = '\033[92m'
+C_END = '\033[0m'
 
-#Constants
-defaultDir = os.getenv("HOME") + "/16S/"
-defaultLogdir = os.getenv("HOME") + "/16SLogs/"
+# Constants
+defaultDir = os.path.join(os.getenv("HOME"), '16S', '')
+defaultLogDir = os.path.join(os.getenv("HOME"), '16SLogs', '')
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-d","--directory", type=str,help="set the directory to store the database (default: ~/16S/")
-parser.add_argument("-l","--logdirectory", type=str,help="set the directory to store the logs (default: ~/16SLogs/")
+parser.add_argument("-d", "--directory", type=str, help="set the directory to store the database (default: ~/16S/")
+parser.add_argument("-l", "--log_directory", type=str, help="set the directory to store the logs (default: ~/16SLogs/")
 args = parser.parse_args()
 
-dir = args.directory
-logdir = args.logdirectory
+database_dir = args.directory
+log_directory = args.log_directory
 try:
-    f = open("./config.ini", "r")
+    # If it fails to read the file it will go to the exception which means the file doesn't exist
+    f = open("config.ini", "r")
     create = False
     f.close()
-    f = open("./config.ini", "r+")
-except:
+    # Since the file exists we will read and write to it
+    f = open("config.ini", "r+")
+except FileNotFoundError:
     warnings.warn("No config file found, creating \"config.ini\"...")
-    f = open("./config.ini", "w")
+    # Create the file
+    f = open("config.ini", "w")
     create = True
 
-#Load config
+# Load config
 config = configparser.ConfigParser()
 
-if create == False: #Config file already exists
+if not create:  # Config file already exists
     try:
-        config.read("./config.ini")
-        if dir is None:
-            dir = config['Directories']['DatabaseDirectory']
+        config.read("config.ini")
+        if database_dir is None:
+            database_dir = config['Directories']['DatabaseDirectory']
         else:
-            config['Directories']['DatabaseDirectory'] = dir
-        if logdir is None:
-            logdir = config['Directories']['LogDirectory']
+            config['Directories']['DatabaseDirectory'] = database_dir
+        if log_directory is None:
+            log_directory = config['Directories']['LogDirectory']
         else:
-            config['Directories']['LogDirectory'] = logdir
+            config['Directories']['LogDirectory'] = log_directory
         config.write(f)
-    except:
+    except (configparser.Error, KeyError):
         warnings.warn("Invalid config file!")
-        if not dir is None and not logdir is None:
+        if database_dir is not None and log_directory is not None:
             warnings.warn("Using arguments given and repairing config file...")
             config = configparser.ConfigParser()
             create = True
         else:
             warnings.warn("Fix the config file or try again with arguments for directory and log directory")
             exit()
-if create == True:  # New file
-    if dir is None:
+if create:  # New file
+    if database_dir is None:
         try:
             config['Directories']['DatabaseDirectory'] = defaultDir
-        except:
+        except KeyError:
             config['Directories'] = {}
             config['Directories']['DatabaseDirectory'] = defaultDir
-        dir = defaultDir
+        database_dir = defaultDir
     else:
         try:
-            config['Directories']['DatabaseDirectory'] = dir
-        except:
+            config['Directories']['DatabaseDirectory'] = database_dir
+        except KeyError:
             config['Directories'] = {}
-            config['Directories']['DatabaseDirectory'] = dir
-    if logdir is None:
+            config['Directories']['DatabaseDirectory'] = database_dir
+    if log_directory is None:
         try:
-            config['Directories']['LogDirectory'] = defaultLogdir
-        except:
+            config['Directories']['LogDirectory'] = defaultLogDir
+        except KeyError:
             config['Directories'] = {}
             config['Directories']['LogDirectory'] = defaultDir
-        logdir = defaultLogdir
+        log_directory = defaultLogDir
     else:
         try:
-            config['Directories']['LogDirectory'] = logdir
-        except:
+            config['Directories']['LogDirectory'] = log_directory
+        except KeyError:
             config['Directories'] = {}
-            config['Directories']['LogDirectory'] = logdir
+            config['Directories']['LogDirectory'] = log_directory
     config.write(f)
 
-
-#Set up logging
+# Set up logging
 try:
-    if not os.path.exists(logdir):
-        os.mkdir(logdir)
-except:
-    print("Invalid directory " + logdir)
+    if not os.path.exists(log_directory):
+        os.makedirs(log_directory)
+except (os.error, TypeError):
+    print("Invalid directory " + str(log_directory))
     exit()
 
-logdir += time.strftime("%Y-%m-%d_%H:%M:%S")
-logging.basicConfig(filename=logdir, level=logging.INFO)
+log_directory = os.path.join(log_directory, time.strftime("%Y-%m-%d_%H:%M:%S") + ".txt")
+logging.basicConfig(filename=log_directory, level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
-#This function checks if a date in the format Y-M-D is bigger than another date
-def moreRecent(date,than):
-    tieThan = 0
-    tieDate = 0
+
+# This function checks if a date in the format Y-M-D is bigger than another date
+def more_recent(date, than):
+    tie_than = 0
+    tie_date = 0
 
     if ":" in than:
-        tieThan = int(than[than.index(":")+1:])
+        tie_than = int(than[than.index(":") + 1:])
     if ":" in date:
-        tieDate = int(date[date.index(":")+1:])
+        tie_date = int(date[date.index(":") + 1:])
 
     than = than.split("-")
     date = date.split("-")
 
-    for i in range (0,3):
+    for i in range(0, 3):
         if date[i] != than[i]:
             return date[i] > than[i]
 
-    return tieDate >= tieThan
+    return tie_date >= tie_than
 
-#This function downloads a 16S Database from NCBI and stores it in the correct folder
-def downloadDatabase(dir):
-    logging.info("Not up to date, downloading new database from https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz ...")
-    folder = os.path.join(dir,time.strftime("%Y-%m-%d"))
+
+# T his function downloads a 16S Database from NCBI and stores it in the correct folder
+def download_database(data_dir):
+    logging.info("Not up to date,"
+                 " downloading new database from https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz ...")
+    folder = os.path.join(data_dir, time.strftime("%Y-%m-%d"))
     i = 0
     while os.path.exists(folder):
         i += 1
-        folder = dir + time.strftime("%Y-%m-%d") + ":" + str(i)
+        folder = os.path.join(data_dir, time.strftime("%Y-%m-%d") + ":" + str(i))
     else:
         os.makedirs(folder)
-    urllib.request.urlretrieve("https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz", folder + "/16SMicrobial.tar.gz")
-    logging.info("Successfully retrieved file, stored in " + os.path.join(folder + "/16SMicrobial.tar.gz"))
+    urllib.request.urlretrieve("https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz",
+                               os.path.join(folder, "16SMicrobial.tar.gz"))
+    logging.info("Successfully retrieved file, stored in " + os.path.join(folder, "16SMicrobial.tar.gz"))
+
 
 logging.info("Checking if NCBI 16S database matches local database...")
 logging.info("Downloading current md5 hash from https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz.md5 ...")
@@ -130,34 +146,36 @@ r = requests.get('https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz.md5')
 logging.info("Downloaded current md5 hash...")
 logging.info("Getting local md5 hash...")
 
-#Find the most recent downloaded database
+# Find the most recent downloaded database
 mostRecent = "0-0-0"
-if not os.path.exists(dir):
-    os.mkdir(dir)
-for file in os.listdir(dir):
-    if moreRecent(file, mostRecent):
+if not os.path.exists(database_dir):
+    os.mkdir(database_dir)
+for file in os.listdir(database_dir):
+    if more_recent(file, mostRecent):
         mostRecent = file
 
-#If no database found locally then print message and download from NCBI
+# If no database found locally then print message and download from NCBI
 if mostRecent == "0-0-0":
     logging.info("Can't find a local database.")
-    downloadDatabase(dir)
+    download_database(database_dir)
 else:
-    #Gets the local hash and compares it to the one on the server
-    logging.info("Getting local hash from folder " + dir + mostRecent + " ...")
+    # Gets the local hash and compares it to the one on the server
+    logging.info("Getting local hash from folder " + database_dir + mostRecent + " ...")
 
-    #Gets local hash
-    currentHash = subprocess.Popen(["md5sum", dir + mostRecent + "/16SMicrobial.tar.gz"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    # Gets local hash
+    currentHash = subprocess.Popen(["md5sum", os.path.join(database_dir, mostRecent, "16SMicrobial.tar.gz")],
+                                   stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    a = ""
     for line in iter(currentHash.stdout.readline, b''):
         a = line.decode("utf-8")
     logging.info("Got local md5 hash...")
     logging.info("Comparing local and current hashes...")
 
-    #Compares the hashes
+    # Compares the hashes
     if a[:a.index(" ")] == r.text[:r.text.index(" ")]:
-        logging.info(CGREEN + "Up to date." + CEND)
+        logging.info(C_GREEN + "Up to date." + C_END)
     else:
-        #Since the database isn't up to date, must download new version
-        downloadDatabase(dir)
+        # Since the database isn't up to date, must download new version
+        download_database(database_dir)
 
-logging.info(CGREEN + "Completed." + CEND)
+logging.info(C_GREEN + "Completed." + C_END)
