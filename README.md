@@ -17,16 +17,24 @@ Each time you run the script it will check your database directory and update it
 
 ### Setting the program up as a cron job
 
-Edit the cron config file through your terminal:                                                               
+Make the script executable with:
+
+`chmod +x updateDatabase.py`
+
+Edit the cron config file through your terminal:
+
 `$ crontab -e`                                                                  
+
 Add this line to the bottom of the file (must have return character after):                                                 
-`0 7 * * 1 python3 <PATH TO "cleanDocker.sh">`
+
+`0 7 * * 1 <PATH TO "updateDatabase.py">`
+
 ##### Parameters (* = any):
 1. Minute (0 - 59)
 2. Hour (0 - 23)
 3. Day of month (1 - 31) 
 4. Month (1 - 12)
 5. Day of week (0 - 7) (where both 0 and 7 mean Sun, 1 = Mon, 2 = Tue, etc)
-6. Command line to be executed (eg. python3 /home/update-16Sdata/updateDatabase.py) 
+6. Command line to be executed (eg. /home/update-16Sdata/updateDatabase.py) 
 
 This setup will make it run every Monday at 7:00 AM.
