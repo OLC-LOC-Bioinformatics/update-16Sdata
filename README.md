@@ -3,17 +3,26 @@ Written by Devon Mack 2017-03-27
 
 When run, this program will automatically update a local bacterial 16S database. The local copy will be compared to the latest version on the NCBI database located at https://ftp.ncbi.nih.gov/. If it is out of date, a new version will be downloaded automatically.
 
+## Prerequisites
+
+- Python 3
+
 ## Installation
-Clone the github repository. Edit the script and change line 4 to your preferred directory to store the database.
-
-`dir = "DIRECTORY"`
-
-Change line 7 to your preferred directory to store the logs:
-
-`logdir = "LOGDIRECTORY"`
+Clone the github repository:
+https://github.com/devonpmack/update-16Sdata.git
 
 ## Usage
 Each time you run the script it will check your database directory and update it if necessary. A log will be outputted to your chosen log directory. A cron job can also be set up to run it automatically on a schedule.
+
+Run the script with
+
+`python3 updateDatabase.py`
+
+It will automatically create the default config file which stores the database and logs in your home directory. To change these directories, set the path using the paramaters.
+
+`python3 updateDatabase.py -d PATH_TO_DATABASE -l PATH_TO_LOGS`
+
+Change PATH_TO_DATABASE and PATH_TO_LOGS to a folder where you would like to store your database/logs.
 
 ### Setting the program up as a cron job
 
