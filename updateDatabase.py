@@ -1,15 +1,93 @@
 #!/usr/bin/env python3
-import requests, subprocess, urllib.request, time, os, logging, sys
+import requests, subprocess, urllib.request, time, os, logging, sys, argparse, configparser, warnings
 
-#Directory to store all files in (eg. /home)
-dir = "/home/devon/16S/"
+CRED = '\033[91m'
+CGREEN = '\033[92m'
+CEND = '\033[0m'
 
-#Directory to store logs
-logdir = "/home/devon/16SLogs/"
+#Constants
+defaultDir = os.getenv("HOME") + "/16S/"
+defaultLogdir = os.getenv("HOME") + "/16SLogs/"
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-d","--directory", type=str,help="set the directory to store the database (default: ~/16S/")
+parser.add_argument("-l","--logdirectory", type=str,help="set the directory to store the logs (default: ~/16SLogs/")
+args = parser.parse_args()
+
+dir = args.directory
+logdir = args.logdirectory
+try:
+    f = open("./config.ini", "r")
+    create = False
+    f.close()
+    f = open("./config.ini", "r+")
+except:
+    warnings.warn("No config file found, creating \"config.ini\"...")
+    f = open("./config.ini", "w")
+    create = True
+
+#Load config
+config = configparser.ConfigParser()
+
+if create == False: #Config file already exists
+    try:
+        config.read("./config.ini")
+        if dir is None:
+            dir = config['Directories']['DatabaseDirectory']
+        else:
+            config['Directories']['DatabaseDirectory'] = dir
+        if logdir is None:
+            logdir = config['Directories']['LogDirectory']
+        else:
+            config['Directories']['LogDirectory'] = logdir
+        config.write(f)
+    except:
+        warnings.warn("Invalid config file!")
+        if not dir is None and not logdir is None:
+            warnings.warn("Using arguments given and repairing config file...")
+            config = configparser.ConfigParser()
+            create = True
+        else:
+            warnings.warn("Fix the config file or try again with arguments for directory and log directory")
+            exit()
+if create == True:  # New file
+    if dir is None:
+        try:
+            config['Directories']['DatabaseDirectory'] = defaultDir
+        except:
+            config['Directories'] = {}
+            config['Directories']['DatabaseDirectory'] = defaultDir
+        dir = defaultDir
+    else:
+        try:
+            config['Directories']['DatabaseDirectory'] = dir
+        except:
+            config['Directories'] = {}
+            config['Directories']['DatabaseDirectory'] = dir
+    if logdir is None:
+        try:
+            config['Directories']['LogDirectory'] = defaultLogdir
+        except:
+            config['Directories'] = {}
+            config['Directories']['LogDirectory'] = defaultDir
+        logdir = defaultLogdir
+    else:
+        try:
+            config['Directories']['LogDirectory'] = logdir
+        except:
+            config['Directories'] = {}
+            config['Directories']['LogDirectory'] = logdir
+    config.write(f)
+
 
 #Set up logging
-if not os.path.exists(logdir):
-    os.mkdir(logdir)
+try:
+    if not os.path.exists(logdir):
+        os.mkdir(logdir)
+except:
+    print("Invalid directory " + logdir)
+    exit()
+
 logdir += time.strftime("%Y-%m-%d_%H:%M:%S")
 logging.basicConfig(filename=logdir, level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
@@ -36,7 +114,7 @@ def moreRecent(date,than):
 #This function downloads a 16S Database from NCBI and stores it in the correct folder
 def downloadDatabase(dir):
     logging.info("Not up to date, downloading new database from https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz ...")
-    folder = dir + time.strftime("%Y-%m-%d")
+    folder = os.path.join(dir,time.strftime("%Y-%m-%d"))
     i = 0
     while os.path.exists(folder):
         i += 1
@@ -44,7 +122,7 @@ def downloadDatabase(dir):
     else:
         os.makedirs(folder)
     urllib.request.urlretrieve("https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz", folder + "/16SMicrobial.tar.gz")
-    logging.info("Successfully retrieved file, stored in " + folder + "/16SMicrobial.tar.gz")
+    logging.info("Successfully retrieved file, stored in " + os.path.join(folder + "/16SMicrobial.tar.gz"))
 
 logging.info("Checking if NCBI 16S database matches local database...")
 logging.info("Downloading current md5 hash from https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz.md5 ...")
@@ -54,6 +132,8 @@ logging.info("Getting local md5 hash...")
 
 #Find the most recent downloaded database
 mostRecent = "0-0-0"
+if not os.path.exists(dir):
+    os.mkdir(dir)
 for file in os.listdir(dir):
     if moreRecent(file, mostRecent):
         mostRecent = file
@@ -75,9 +155,9 @@ else:
 
     #Compares the hashes
     if a[:a.index(" ")] == r.text[:r.text.index(" ")]:
-        logging.info("Up to date.")
+        logging.info(CGREEN + "Up to date." + CEND)
     else:
         #Since the database isn't up to date, must download new version
         downloadDatabase(dir)
 
-logging.info("Completed.")
+logging.info(CGREEN + "Completed." + CEND)
