@@ -124,10 +124,12 @@ def more_recent(date, than):
     return tie_date >= tie_than
 
 
-# T his function downloads a 16S Database from NCBI and stores it in the correct folder
+# This function downloads a 16S Database from NCBI and stores it in the correct folder
+tries = 0
 def download_database(data_dir):
-    logging.info("Not up to date,"
-                 " downloading new database from https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz ...")
+    global tries
+    logging.info("Not up to date, downloading new database from "
+                 "https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz ...")
     folder = os.path.join(data_dir, time.strftime("%Y-%m-%d"))
     i = 0
     while os.path.exists(folder):
@@ -138,7 +140,29 @@ def download_database(data_dir):
     urllib.request.urlretrieve("https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz",
                                os.path.join(folder, "16SMicrobial.tar.gz"))
     logging.info("Successfully retrieved file, stored in " + os.path.join(folder, "16SMicrobial.tar.gz"))
+    logging.info("Checking that md5 hash matches one on server (in case of corruption)")
+    logging.info("Getting hash of " + os.path.join(folder, "16SMicrobial.tar.gz") + "...")
+    check_hash = subprocess.Popen(["md5sum", os.path.join(folder, "16SMicrobial.tar.gz")],
+                                   stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    hash = ""
+    for line in iter(check_hash.stdout.readline, b''):
+        hash = line.decode("utf-8")
+    logging.info("Got local md5 hash...")
+    logging.info("Comparing local and current hashes...")
 
+    # Compares the hashes
+    if hash[:hash.index(" ")] == r.text[:r.text.index(" ")]:
+        logging.info(C_GREEN + "File not corrupted." + C_END)
+    else:
+        tries += 1
+        logging.warning("Hash doesn't match downloaded file, corrupted? Redownloading...")
+        warnings.warn("Hash doesn't match downloaded file, corrupted? Redownloading...")
+        # Since the database is corrupted, redownload
+        if tries > 4:
+            logging.error("Can't download database! Hash won't match.")
+            warnings.warn("Can't download database! Hash won't match.")
+            exit()
+        download_database(data_dir)
 
 logging.info("Checking if NCBI 16S database matches local database...")
 logging.info("Downloading current md5 hash from https://ftp.ncbi.nih.gov/blast/db/16SMicrobial.tar.gz.md5 ...")
