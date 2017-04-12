@@ -17,11 +17,15 @@ Each time you run the script it will check your database directory and update it
 
 Run the script with
 
-`python3 updateDatabase.py`
+```
+python3 updateDatabase.py
+```
 
 It will automatically create the default config file which stores the database and logs in your home directory. To change these directories, set the path using the paramaters.
 
-`python3 updateDatabase.py -d PATH_TO_DATABASE -l PATH_TO_LOGS`
+```python
+python3 updateDatabase.py -d PATH_TO_DATABASE -l PATH_TO_LOGS
+```
 
 Change PATH_TO_DATABASE and PATH_TO_LOGS to a folder where you would like to store your database/logs.
 
