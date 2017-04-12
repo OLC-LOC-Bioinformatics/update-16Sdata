@@ -17,14 +17,14 @@ Each time you run the script it will check your database directory and update it
 
 Run the script with
 
-```
-python3 updateDatabase.py
+```Shell Session
+$ python3 updateDatabase.py
 ```
 
 It will automatically create the default config file which stores the database and logs in your home directory. To change these directories, set the path using the paramaters.
 
-```python
-python3 updateDatabase.py -d PATH_TO_DATABASE -l PATH_TO_LOGS
+```shell
+$ python3 updateDatabase.py -d PATH_TO_DATABASE -l PATH_TO_LOGS
 ```
 
 Change `PATH_TO_DATABASE` and `PATH_TO_LOGS` to a folder where you would like to store your database/logs.
@@ -34,16 +34,19 @@ ___
 ### Setting the program up as a cron job
 
 Make the script executable with:
-
-`chmod +x updateDatabase.py`
+```shell
+$ chmod +x updateDatabase.py`
+```
 
 Edit the cron config file through your terminal:
 
-`$ crontab -e`                                                                  
+```shell
+$ crontab -e`                                                                  
+```
 
 Add this line to the bottom of the file (must have return character after):                                                 
 
-```ceylon
+```creyton
 0 7 * * 1 PATH_TO_SCRIPT
 ```
 
