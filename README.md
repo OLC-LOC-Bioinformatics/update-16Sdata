@@ -35,13 +35,13 @@ ___
 
 Make the script executable with:
 ```console
-$ chmod +x updateDatabase.py`
+chmod +x updateDatabase.py`
 ```
 
 Edit the cron config file through your terminal:
 
 ```console
-$ crontab -e`                                                                  
+crontab -e`                                                                  
 ```
 
 Add this line to the bottom of the file (must have return character after):                                                 
