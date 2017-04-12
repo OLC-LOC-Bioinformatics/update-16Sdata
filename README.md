@@ -5,7 +5,8 @@ When run, this program will automatically update a local bacterial 16S database.
 
 ## Prerequisites
 
-- Python 3
+- [Python 3](https://www.python.org/downloads/)
+- [Blast](https://blast.ncbi.nlm.nih.gov/Blast.cgi)
 
 ## Installation
 Clone the github repository:
@@ -16,34 +17,48 @@ Each time you run the script it will check your database directory and update it
 
 Run the script with
 
-`python3 updateDatabase.py`
+```console
+python3 updateDatabase.py
+```
 
 It will automatically create the default config file which stores the database and logs in your home directory. To change these directories, set the path using the paramaters.
 
-`python3 updateDatabase.py -d PATH_TO_DATABASE -l PATH_TO_LOGS`
+```console
+python3 updateDatabase.py -d PATH_TO_DATABASE -l PATH_TO_LOGS
+```
 
-Change PATH_TO_DATABASE and PATH_TO_LOGS to a folder where you would like to store your database/logs.
+Change `PATH_TO_DATABASE` and `PATH_TO_LOGS` to a folder where you would like to store your database/logs.
+
+___
 
 ### Setting the program up as a cron job
 
 Make the script executable with:
-
-`chmod +x updateDatabase.py`
+```console
+chmod +x updateDatabase.py`
+```
 
 Edit the cron config file through your terminal:
 
-`$ crontab -e`                                                                  
+```console
+crontab -e`                                                                  
+```
 
 Add this line to the bottom of the file (must have return character after):                                                 
 
-`0 7 * * 1 <PATH TO "updateDatabase.py">`
-
-##### Parameters (* = any):
-1. Minute (0 - 59)
-2. Hour (0 - 23)
-3. Day of month (1 - 31) 
-4. Month (1 - 12)
-5. Day of week (0 - 7) (where both 0 and 7 mean Sun, 1 = Mon, 2 = Tue, etc)
-6. Command line to be executed (eg. /home/update-16Sdata/updateDatabase.py) 
+```ceylon
+0 7 * * 1 PATH_TO_SCRIPT
+```
 
 This setup will make it run every Monday at 7:00 AM.
+
+Parameter Number | Parameter (`*` means it doesn't matter when)
+--- | ---
+1 | Minute (0 - 59)
+2 | Hour (0 - 23)
+3 | Day of month (1 - 31) 
+4 | Month (1 - 12)
+5 | Day of week (0 - 7) (where both 0 and 7 mean Sun, 1 = Mon, 2 = Tue, etc)
+6 | Command line to be executed (eg. /home/update-16Sdata/updateDatabase.py) 
+
+
