@@ -27,7 +27,9 @@ It will automatically create the default config file which stores the database a
 python3 updateDatabase.py -d PATH_TO_DATABASE -l PATH_TO_LOGS
 ```
 
-Change PATH_TO_DATABASE and PATH_TO_LOGS to a folder where you would like to store your database/logs.
+Change `PATH_TO_DATABASE` and `PATH_TO_LOGS` to a folder where you would like to store your database/logs.
+
+___
 
 ### Setting the program up as a cron job
 
@@ -41,14 +43,19 @@ Edit the cron config file through your terminal:
 
 Add this line to the bottom of the file (must have return character after):                                                 
 
-`0 7 * * 1 <PATH TO "updateDatabase.py">`
-
-##### Parameters (* = any):
-1. Minute (0 - 59)
-2. Hour (0 - 23)
-3. Day of month (1 - 31) 
-4. Month (1 - 12)
-5. Day of week (0 - 7) (where both 0 and 7 mean Sun, 1 = Mon, 2 = Tue, etc)
-6. Command line to be executed (eg. /home/update-16Sdata/updateDatabase.py) 
+```ceylon
+0 7 * * 1 PATH_TO_SCRIPT
+```
 
 This setup will make it run every Monday at 7:00 AM.
+
+Parameter Number | Parameter (`*` means it doesn't matter when)
+--- | ---
+1 | Minute (0 - 59)
+2 | Hour (0 - 23)
+3 | Day of month (1 - 31) 
+4 | Month (1 - 12)
+5 | Day of week (0 - 7) (where both 0 and 7 mean Sun, 1 = Mon, 2 = Tue, etc)
+6 | Command line to be executed (eg. /home/update-16Sdata/updateDatabase.py) 
+
+
