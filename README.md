@@ -46,7 +46,7 @@ crontab -e`
 
 Add this line to the bottom of the file (must have return character after):                                                 
 
-```creyton
+```ceylon
 0 7 * * 1 PATH_TO_SCRIPT
 ```
 
