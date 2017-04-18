@@ -7,6 +7,7 @@ When run, this program will automatically update a local bacterial 16S database.
 
 - [Python 3](https://www.python.org/downloads/)
 - [Blast](https://blast.ncbi.nlm.nih.gov/Blast.cgi)
+- [Bio Python](http://biopython.org/wiki/Biopython)
 
 ## Installation
 Clone the github repository:
