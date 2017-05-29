@@ -7,6 +7,7 @@ When run, this program will automatically update a local bacterial 16S database.
 
 - [Python 3](https://www.python.org/downloads/)
 - [Blast](https://blast.ncbi.nlm.nih.gov/Blast.cgi)
+- [Bio Python](http://biopython.org/wiki/Biopython)
 
 ## Installation
 Clone the github repository:
@@ -35,13 +36,13 @@ ___
 
 Make the script executable with:
 ```console
-chmod +x updateDatabase.py
+chmod 755 updateDatabase.py
 ```
 
 Edit the cron config file through your terminal:
 
 ```console
-crontab -e                                                            
+sudo crontab -e
 ```
 
 Add this line to the bottom of the file (must have return character after):                                                 
